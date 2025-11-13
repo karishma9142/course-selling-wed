@@ -6,8 +6,8 @@ const mongoose = require("mongoose");
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = "karishmarawt1234567890asdfghjklzxcvbnm@#$%^&*";
 const cors = require("cors");
-
 const app = express();
+app.use(express.json());
 
 app.use(cors());
 app.use(express.json());
