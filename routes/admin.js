@@ -1,11 +1,12 @@
-const Router = require("express");
+const { Router } = require("express");
 const adminRouter = Router();
-const { AdminModel } = require("../db");
+const { AdminModel, CourseModel } = require("../db");
 const { z } = require("zod");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
-const JWT_SECRET = "karishmarawt1234567890asdfghjklzxcvbnm@#$%^&*";
+const {JWT_ADMIN_SECRET} = require("../config");
+const { adminMiddleware } = require("../middleware/admin");
 
 adminRouter.post("/signup" ,async function(req,res){
     const { email, password, firstName, lastName } = req.body;
@@ -63,7 +64,7 @@ adminRouter.post("/signin" ,async function(req,res){
     const passwordMatch = await bcrypt.compare(password, admin.password);
 
     if (passwordMatch) {
-      const token = jwt.sign({ id: admin._id }, JWT_SECRET);
+      const token = jwt.sign({ id: admin._id }, JWT_ADMIN_SECRET);
       res.status(200).json({
         msg: "signin successful",
         token: token,
@@ -81,16 +82,52 @@ adminRouter.post("/signin" ,async function(req,res){
 
 
 
-adminRouter.post("/Courses" , function(req,res){
-
+adminRouter.post("/Course" ,adminMiddleware,async function(req,res){
+    const adminId = req.userId;
+    const {title , discripation, price , imageUrl} = req.body;
+    
+    const course = await CourseModel.create({
+      title : title ,
+      discripation : discripation ,
+      price : price ,
+      imageUrl : imageUrl ,
+      createrId : adminId
+    });
+    res.status(200).json({
+      msg : "course created succesfully",
+      courseId  : course._id
+    })
 });
 
-adminRouter.put("/Course" , function(req,res){
-
+adminRouter.put("/Course",adminMiddleware ,async function(req,res){
+  const adminId = req.userId;
+    const {title , discripation, price , imageUrl ,courseId} = req.body;
+    
+    const course = await CourseModel.updateOne({
+      _id : courseId ,
+      createrId : adminId
+    },{
+      title : title ,
+      discripation : discripation ,
+      price : price ,
+      imageUrl : imageUrl 
+    });
+    res.status(200).json({
+      mag : "course updated succesfully",
+      courseId  : course._id
+    })
 });
 
-adminRouter.get("/Course/bulk" , function(req,res){
-
+adminRouter.get("/Course/bulk" , adminMiddleware,async function(req,res){
+  const adminId = req.userId;
+  
+  const course = await CourseModel.find({
+    createrId : adminId
+  });
+  res.json({
+    msg : "done" ,
+    course : course
+  })
 });
 
 module.exports = {

@@ -4,8 +4,8 @@ const { z } = require("zod");
 const { UserModel } = require("../db");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
-const JWT_SECRET = "karishmarawt1234567890asdfghjklzxcvbnm@#$%^&*";
+const {JWT_USER_SECRET} = require("../config");
+const {userMiddleware} = require("../middleware/user");
 const userRouter = Router();
 
 userRouter.post("/signup", async function (req, res) {
@@ -64,7 +64,7 @@ userRouter.post("/signin", async function (req, res) {
     const passwordMatch = await bcrypt.compare(password, user.password);
 
     if (passwordMatch) {
-      const token = jwt.sign({ id: user._id }, JWT_SECRET);
+      const token = jwt.sign({ id: user._id }, JWT_USER_SECRET);
       res.status(200).json({
         msg: "signin successful",
         token: token,
@@ -80,7 +80,7 @@ userRouter.post("/signin", async function (req, res) {
   }
 });
 
-userRouter.get("/purchases", function (req, res) {
+userRouter.get("/purchases",userMiddleware, function (req, res) {
 
 });
 
